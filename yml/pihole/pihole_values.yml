@@ -1,0 +1,21 @@
+---
+persistentVolumeClaim:
+  enabled: true
+ingress:
+  enabled: true
+serviceWeb:
+  type: ClusterIP
+serviceDns:
+  loadBalancerIP: '172.16.16.31'
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+  type: LoadBalancer
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+# If using in the real world, set up admin.existingSecret instead.
+adminPassword: admin
