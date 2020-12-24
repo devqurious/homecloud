@@ -1,3 +1,5 @@
+# Before applying this, run: kubectl create configmap mysite-html --from-file index.html
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,7 +51,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /foo
+      - path: /hello-world
         pathType: Prefix
         backend:
           service:

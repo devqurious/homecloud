@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rpi-container-ingress
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /rpi-container
+        pathType: Prefix
+        backend:
+          service:
+            name: rpi-container-service
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rpi-container-service
+spec:
+  ports:
+  - name: http
+    targetPort: 80
+    port: 80
+  selector:
+    app: rpi-container
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rpi-container-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rpi-container
+  template:
+    metadata:
+      labels:
+        app: rpi-container
+    spec:
+      containers:
+      - name: rpi-container
+        image: pihole/pihole
