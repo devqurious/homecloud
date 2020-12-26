@@ -1,0 +1,19 @@
+# Enable blocking from 3pm to 7pm IST ..
+
+# Enable the blocking (UTC time!)
+30 9 * * * sqlite3 /etc/pihole/gravity.db "update 'group' set enabled = 1 where name = 'School'" >> /tmp/pihole_group.log 2>&1
+32 9 * * * PATH="$PATH:/usr/sbin:/usr/local/bin/" pihole restartdns >> /tmp/restartpihole.log 2>&1
+
+# Disable the blocking time
+58 13 * * * sqlite3 /etc/pihole/gravity.db "update 'group' set enabled = 0 where name = 'School'" >> /tmp/pihole_group.log 2>&1
+00 14 * * * PATH="$PATH:/usr/sbin:/usr/local/bin/" pihole restartdns >> /tmp/restartpihole.log 2>&1
+
+# Allowed time from 7:30pm to 9pm IST
+
+# Enable blocking from 9pm to 11am IST
+30 15 * * * sqlite3 /etc/pihole/gravity.db "update 'group' set enabled = 1 where name = 'School'" >> /tmp/pihole_group.log 2>&1
+2 15 * * * PATH="$PATH:/usr/sbin:/usr/local/bin/" pihole restartdns >> /tmp/restartpihole.log 2>&1
+
+30 5 * * * sqlite3 /etc/pihole/gravity.db "update 'group' set enabled = 0 where name = 'School'" >> /tmp/pihole_group.log 2>&1
+32 5 * * * PATH="$PATH:/usr/sbin:/usr/local/bin/" pihole restartdns >> /tmp/restartpihole.log 2>&1
+
