@@ -1,0 +1,14 @@
+# Enable blocking from 3pm
+0 15 * * * /home/ubuntu/install/ph_groups.py Restricted 1 >> /tmp/pihole_group.log 2>&1
+
+# ... to 7:30pm.
+30 19 * * *  /home/ubuntu/install/ph_groups.py Restricted 0 >> /tmp/pihole_group.log 2>&1
+
+# Allowed time from 7:30pm to 9pm IST
+
+# Enable blocking from 9pm 
+30 21 * * * /home/ubuntu/install/ph_groups.py Restricted 1 >> /tmp/pihole_group.log 2>&1
+
+# ... to 11am
+0 11 * * * /home/ubuntu/install/ph_groups.py Restricted 1 >> /tmp/pihole_group.log 2>&1
+
