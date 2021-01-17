@@ -17,3 +17,4 @@ minecraftServer:
   maxWorldSize: 5000
   viewDistance: 6
   gameMode: creative
+  ops: yetikacker, devminecraft72

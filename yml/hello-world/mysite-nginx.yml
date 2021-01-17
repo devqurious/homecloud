@@ -1,4 +1,6 @@
-# Before applying this, run: kubectl create configmap mysite-html --from-file index.html
+### First create the configmap: sudo kubectl create configmap mysite-html --from-file index.html
+### Then, apply the manifest (yml) file: sudo kubectl apply -f mysite-nginx.yml 
+
 
 apiVersion: apps/v1
 kind: Deployment
@@ -7,7 +9,7 @@ metadata:
   labels:
     app: mysite-nginx
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: mysite-nginx

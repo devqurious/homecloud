@@ -6,7 +6,7 @@ ingress:
 serviceWeb:
   type: ClusterIP
 serviceDns:
-  loadBalancerIP: '172.16.16.31'
+  loadBalancerIP: '172.16.16.16'
   annotations:
     metallb.universe.tf/allow-shared-ip: pihole-svc
   type: LoadBalancer

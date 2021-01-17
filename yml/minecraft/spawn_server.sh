@@ -1,8 +1,8 @@
 #!/bin/bash
 # Script to monitor and restart the mine craft server if necessary.
 
-INSTALL_DIR=/home/ubuntu/install
-python3 $INSTALL_DIR/check_minecraft.py --hostname 192.168.1.254 -m 'Welcome to Minecraft on Home Cloud!' >/dev/null 2>&1
+INSTALL_DIR=/etc/homecloud
+python3 $INSTALL_DIR/check_minecraft.py -m 'Welcome to Minecraft on Home Cloud!' >/dev/null 2>&1
 ret_code=$?
 
 if [ $ret_code -ne 0 ]; then

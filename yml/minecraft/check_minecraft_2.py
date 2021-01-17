@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
 
+from kubernetes import client, config
 from datetime import datetime, timedelta
 import sys, string, socket, time, argparse
 
@@ -24,7 +25,7 @@ MC_DELIMITER = u"\xa7"
 MC_ENCODING = "utf-16be"
 
 def log(start, message):
-	print(" {0}: {1}".format(datetime.now() - start, message))
+	print("{0}: {1}".format(datetime.now() - start, message))
 
 def get_server_info(host, port, num_checks, timeout, verbose):
 	start_time = datetime.now()
@@ -93,7 +94,7 @@ def get_server_info(host, port, num_checks, timeout, verbose):
 def main():
 	parser = argparse.ArgumentParser(description="This plugin will try to connect to a Minecraft server.");
 
-	parser.add_argument('-H', '--hostname', dest='hostname', metavar='ADDRESS', required=True, help="host name or IP address")
+	# parser.add_argument('-H', '--hostname', dest='hostname', metavar='ADDRESS', required=True, help="host name or IP address")
 	parser.add_argument('-p', '--port', dest='port', type=int, default=25565, metavar='INTEGER', help="port number (default: 25565)")
 	parser.add_argument('-n', '--number-of-checks', dest='num_checks', type=int, default=5, metavar='INTEGER', help="number of checks to get stable average response time (default: 5)")
 	parser.add_argument('-m', '--motd', dest='motd', default='A Minecraft Server', metavar='STRING', help="expected motd in server response (default: A Minecraft Server)")
@@ -111,30 +112,42 @@ def main():
 		sys.exit(STATE_UNKNOWN)
 
 	try:
-		info = get_server_info(args.hostname, args.port, args.num_checks, args.timeout, args.verbose)
 
-		if str.find(info['motd'], args.motd) > -1:
-			# Check if response time is above critical level.
-			if args.critical and info['response_time'] > args.critical:
-				print(OUTPUT_CRITICAL.format("{0} second response time".format(info['response_time']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
-				sys.exit(STATE_CRITICAL)
+		# Retrieve the API
+		config.load_kube_config(config_file="/home/ubuntu/.kube/config")
+		api = client.CoreV1Api()
 
-			# Check if response time is above warning level.
-			if args.warning and info['response_time'] > args.warning:
-				print(OUTPUT_WARNING.format("{0} second response time".format(info['response_time']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
+
+		# Find the IP address(es) of the pihole pods
+		ret = api.list_namespaced_pod(namespace='minecraft')
+		print("ddd")
+		for i in ret.items:
+			print("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+
+			info = get_server_info(i.status.pod_ip, args.port, args.num_checks, args.timeout, args.verbose)
+
+			if str.find(info['motd'], args.motd) > -1:
+				# Check if response time is above critical level.
+				if args.critical and info['response_time'] > args.critical:
+					print(OUTPUT_CRITICAL.format("{0} second response time".format(info['response_time']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
+					sys.exit(STATE_CRITICAL)
+
+				# Check if response time is above warning level.
+				if args.warning and info['response_time'] > args.warning:
+					print(OUTPUT_WARNING.format("{0} second response time".format(info['response_time']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
+					sys.exit(STATE_WARNING)
+
+				# Check if server is full.
+				if args.full and info['players'] == info['max_players']:
+					print(OUTPUT_WARNING.format("Server full! {0} players online".format(info['players']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
+					sys.exit(STATE_WARNING)
+
+				print(OUTPUT_OK.format("{0}/{1} players online".format(info['players'], info['max_players']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
+				sys.exit(STATE_OK)
+
+			else:
+				print(OUTPUT_WARNING.format("Unexpected MOTD, {0}".format(info['motd']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
 				sys.exit(STATE_WARNING)
-
-			# Check if server is full.
-			if args.full and info['players'] == info['max_players']:
-				print(OUTPUT_WARNING.format("Server full! {0} players online".format(info['players']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
-				sys.exit(STATE_WARNING)
-
-			print(OUTPUT_OK.format("{0}/{1} players online".format(info['players'], info['max_players']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
-			sys.exit(STATE_OK)
-
-		else:
-			print(OUTPUT_WARNING.format("Unexpected MOTD, {0}".format(info['motd']), info['byte_count'], info['response_time'], args.warning, args.critical, args.timeout))
-			sys.exit(STATE_WARNING)
 
 	except socket.error as msg:
 		print(OUTPUT_EXCEPTION.format(msg))
