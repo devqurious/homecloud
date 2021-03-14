@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hc-rsyncer-app
+  labels:
+    name: hc-rsyncer-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: hc-rsyncer-app
+  template:
+    metadata:
+      labels:
+        name: hc-rsyncer-app
+    spec:
+      containers:
+        - name: hc-rsyncer-app
+          image: drathaqm/home_sync
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 22
+              hostPort: 9890
+              name: 80tcp9890
+              protocol: TCP

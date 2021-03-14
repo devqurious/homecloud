@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-rsyncer-service
+spec:
+  # Expose the rsync service on a static port on each node
+  # so that we can access the service from outside the cluster
+  type: NodePort
+
+  # When the node receives a request on the static node (30037)
+  # it will forward to all pods with the label 'name' set to 'hc-rsyncer-app'
+  selector:
+    name: hc-rsyncer-app
+  ports:
+    # Three types of ports for a service
+    # port - port exposed internally in the cluster
+    # nodePort - static port assigned on each of the nodes
+    # targetPort - the container port to send the requests to.
+    - port: 22
+      nodePort: 30037
+      targetPort: 22
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-bb-service
+spec:
+  # Expose the backup browser service on a static port on each node
+  # so that we can access the service from outside the cluster
+  type: NodePort
+
+  # When the node receives a request on the static node (30038)
+  # it will forward to all pods with the label 'name' set to 'hc-rsyncer-app'
+  selector:
+    name: hc-rsyncer-app
+  ports:
+    # Three types of ports for a service
+    # port - port exposed internally in the cluster
+    # nodePort - static port assigned on each of the nodes
+    # targetPort - the container port to send the requests to.
+    - port: 80
+      nodePort: 30038
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hc-rsyncer-app
+  labels:
+    # This key/value is used by the NodePort service to direct the requests
+    # to this container (name = hc-rsyncer-app)
+    name: hc-rsyncer-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: hc-rsyncer-app
+  template:
+    metadata:
+      labels:
+        name: hc-rsyncer-app
+    spec:
+      containers:
+        - name: hc-rsyncer-app
+          image: drathaqm/home_sync
+          imagePullPolicy: Always
+          volumeMounts:
+          - name: volv
+            mountPath: /data
+          env:
+           - name: USERNAME
+             value: root
+           - name: PASSWORD
+             value: root
+      volumes:
+      - name: volv
+        persistentVolumeClaim:
+          claimName: longhorn-volv-pvc
